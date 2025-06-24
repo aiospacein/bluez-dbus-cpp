@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     constexpr const char* APP_PATH = "/org/bluez/example";
     constexpr const char* ADV_PATH = "/org/bluez/example/advertisement1";
 
-    constexpr const char* NAME = "ExampleBlueZ";
+    constexpr const char* NAME = "ExampleBlue_APP";
 
     std::shared_ptr<IConnection> connection{ std::move( sdbus::createSystemBusConnection() ) };
 

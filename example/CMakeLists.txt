@@ -8,9 +8,18 @@
 add_executable (example
 	example.cpp )
 
-target_include_directories( example PUBLIC 	
-	$<BUILD_INTERFACE:${BLUEZ_HEADER_DIR}>
-	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
+
+find_package(sdbus-c++ REQUIRED)
+
+target_link_libraries(example
+    PRIVATE
+    bluez-dbus-cpp
+    sdbus-c++
+)
+
+# target_include_directories(example PUBLIC
+#     $<BUILD_INTERFACE:${BLUEZ_HEADER_DIR}>
+#     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_link_libraries( example PRIVATE bluez-dbus-cpp)
 

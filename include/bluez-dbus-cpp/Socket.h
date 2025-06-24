@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <cerrno>
 #include <cstring>
+#include <unistd.h> // ✅ for close()
 
 namespace org {
 namespace bluez {
