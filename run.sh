@@ -112,7 +112,7 @@ if [[ "$CURRENT_TARGET" == "STM32" ]]; then
     ssh "$TARGET_USER@$TARGET_IP" "chmod +x $TARGET_DIR/$APP_NAME"
 
     echo "[INFO] Running app on target..."
-    ssh "$TARGET_USER@$TARGET_IP" "cd $TARGET_DIR && ./$APP_NAME"
+    # ssh "$TARGET_USER@$TARGET_IP" "cd $TARGET_DIR && ./$APP_NAME"
 else
     echo "[INFO] Running $APP_NAME locally..."
     ./"$OUT_BINARY"

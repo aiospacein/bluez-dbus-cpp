@@ -8,7 +8,8 @@
 #include <bluez-dbus-cpp/GenericCharacteristic.h>
 #include <bluez-dbus-cpp/ReadOnlyCharacteristic.h>
 #include "SerialCharacteristic.h"
-
+#include <bluez-dbus-cpp/proxy/AgentManager1_proxy.h>
+#include <bluez-dbus-cpp/adaptor/Agent1_adaptor.h>
 #include <iostream>
 #include <signal.h>
 
@@ -23,6 +24,77 @@ static void sig_callback(int signum)
     exit(signum);
 }
 
+// ---- Agent Implementation -----------------------------------------------------------------------------------
+class BluetoothAgent : public sdbus::AdaptorInterfaces<org::bluez::Agent1_adaptor>
+{
+public:
+    BluetoothAgent(sdbus::IConnection &connection, const std::string &path)
+        : AdaptorInterfaces(connection, sdbus::ObjectPath(path))
+    {
+        registerAdaptor();
+    }
+
+    std::string RequestPinCode(const sdbus::ObjectPath &device) override
+    {
+        std::cout << "RequestPinCode: " << device << std::endl;
+        // return "0000"; // or any fixed PIN you want
+        throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
+    }
+
+    void DisplayPinCode(const sdbus::ObjectPath &device, const std::string &pincode) override
+    {
+        std::cout << "DisplayPinCode: " << device << ", code: " << pincode << std::endl;
+    }
+
+    void RequestConfirmation(const sdbus::ObjectPath &device, const uint32_t &passkey) override
+    {
+        std::cout << "[Agent] Auto-confirming passkey: " << passkey << std::endl;
+        // std::cout << "[Agent] RequestConfirmation passkey: " << passkey << std::endl;
+        // throw sdbus::Error("org.bluez.Error.Rejected", "No input/output available");
+    }
+
+    void RequestAuthorization(const sdbus::ObjectPath &device) override
+    {
+        std::cout << "RequestAuthorization: " << device << std::endl;
+    }
+
+    uint32_t RequestPasskey(const sdbus::ObjectPath &device) override
+    {
+        std::cout << "[Agent] RequestPasskey from device: " << device << std::endl;
+        // return 123456; // Or return your fixed passkey if needed
+        throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
+    }
+
+    void DisplayPasskey(const sdbus::ObjectPath &device, const uint32_t &passkey, const uint16_t &entered) override
+    {
+        std::cout << "[Agent] DisplayPasskey for device: " << device << ", passkey: " << passkey << ", entered: " << entered << std::endl;
+    }
+
+    void AuthorizeService(const sdbus::ObjectPath &device, const std::string &uuid) override
+    {
+        std::cout << "AuthorizeService: " << device << ", uuid: " << uuid << std::endl;
+    }
+
+    void Cancel() override
+    {
+        std::cout << "Cancel" << std::endl;
+    }
+
+    void Release() override
+    {
+        std::cout << "Agent released." << std::endl;
+    }
+};
+
+// Helper subclass to expose constructor
+class AgentManager1Proxy : public org::bluez::AgentManager1_proxy
+{
+public:
+    // Publicly inherit the base constructor
+    explicit AgentManager1Proxy(sdbus::IProxy &proxy)
+        : org::bluez::AgentManager1_proxy(proxy) {}
+};
+
 int main(int argc, char *argv[])
 {
     if( signal(SIGINT, sig_callback) == SIG_ERR )
@@ -30,8 +102,8 @@ int main(int argc, char *argv[])
 
     constexpr const char* APP_PATH = "/org/bluez/example";
     constexpr const char* ADV_PATH = "/org/bluez/example/advertisement1";
-
-    constexpr const char* NAME = "ExampleBlue_APP";
+    constexpr const char* AGENT_PATH = "/org/bluez/agent";
+    constexpr const char* NAME = "STM_BLE";
 
     std::shared_ptr<IConnection> connection{ std::move( sdbus::createSystemBusConnection() ) };
 
@@ -55,7 +127,13 @@ int main(int argc, char *argv[])
 
     std::cout << std::endl;
 
-    // ---- Services ---------------------------------------------------------------------------------------------------
+    BluetoothAgent agent{ *connection, AGENT_PATH };
+    auto proxy = sdbus::createProxy(*connection, BLUEZ_SERVICE, "/org/bluez");
+    AgentManager1Proxy agentMgr(*proxy);
+
+    agentMgr.RegisterAgent(AGENT_PATH, "DisplayYesNo");
+    agentMgr.RequestDefaultAgent(AGENT_PATH);
+
     GattManager1 gattMgr{ connection, BLUEZ_SERVICE, DEVICE0 };
     auto app =  std::make_shared<GattApplication1>( connection, APP_PATH );
     auto srv1 = std::make_shared<GattService1>( app, "deviceinfo", "180A" );
@@ -122,7 +200,8 @@ int main(int argc, char *argv[])
 
     std::cout << "Loading complete." << std::endl;
 
-    connection->enterProcessingLoopAsync();
+    // connection->enterProcessingLoopAsync();
+    connection->enterEventLoopAsync();
 
     bool run = true;
     while( run) {
