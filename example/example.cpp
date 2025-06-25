@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     auto proxy = sdbus::createProxy(*connection, BLUEZ_SERVICE, "/org/bluez");
     AgentManager1Proxy agentMgr(*proxy);
 
-    agentMgr.RegisterAgent(AGENT_PATH, "DisplayYesNo");
+    agentMgr.RegisterAgent(AGENT_PATH, "NoInputNoOutput");
     agentMgr.RequestDefaultAgent(AGENT_PATH);
 
     GattManager1 gattMgr{ connection, BLUEZ_SERVICE, DEVICE0 };
