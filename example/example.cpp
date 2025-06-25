@@ -36,9 +36,9 @@ public:
 
     std::string RequestPinCode(const sdbus::ObjectPath &device) override
     {
-        std::cout << "RequestPinCode: " << device << std::endl;
-        // return "0000"; // or any fixed PIN you want
-        throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
+        // std::cout << "RequestPinCode: " << device << std::endl;
+        return "0000"; // or any fixed PIN you want
+        // throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
     }
 
     void DisplayPinCode(const sdbus::ObjectPath &device, const std::string &pincode) override
@@ -60,9 +60,9 @@ public:
 
     uint32_t RequestPasskey(const sdbus::ObjectPath &device) override
     {
-        std::cout << "[Agent] RequestPasskey from device: " << device << std::endl;
-        // return 123456; // Or return your fixed passkey if needed
-        throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
+        // std::cout << "[Agent] RequestPasskey from device: " << device << std::endl;
+        return 123456; // Or return your fixed passkey if needed
+        // throw sdbus::Error("org.bluez.Error.Rejected", "Not supported");
     }
 
     void DisplayPasskey(const sdbus::ObjectPath &device, const uint32_t &passkey, const uint16_t &entered) override
